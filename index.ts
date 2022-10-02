@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import Helmet from 'helmet';
-import http from 'http';
 import IP from 'ip';
 import Morgan from 'morgan';
+import fetch from 'node-fetch';
 
 const server = express();
 const port = process.env.PORT || 8000;
@@ -24,11 +24,35 @@ server.listen(port, () =>
 	console.log(`dynv6-windows-updater started on port ${port}`)
 );
 
-const logIP = (myIp: Object) => console.table(`FETCHED ${myIp}`);
+const updateDynv6 = async (IPv6: string) => {
+	const response = await fetch(
+		`http://dynv6.com/api/update?hostname=${process.env.DYNV6_HOST_NAME}&ipv6=${IPv6}&token=${process.env.DYNV6_TOKEN}`,
+		{
+			method: 'get',
+		}
+	);
+	return response.status === 200 ? true : false;
+};
 
-http.get({ host: 'api6.ipify.org', port: 80, path: '/' }, (response) =>
-	response.on(
-		'data',
-		(ip: Object) => IP.isV6Format(String(ip)) && logIP(String(ip))
-	)
-);
+const getExternalIPv6 = async () => {
+	const response = await fetch(`http://api6.ipify.org`, {
+		method: 'get',
+	});
+	const fetchedExternalIPv6 = await response.text();
+	return response.status === 200 && IP.isV6Format(fetchedExternalIPv6)
+		? fetchedExternalIPv6
+		: '';
+};
+
+(async () => {
+	const IPv6Address = await getExternalIPv6();
+	if (IPv6Address) {
+		console.log('External IPv6: ', IPv6Address);
+		const updateResponse = await updateDynv6(IPv6Address);
+		updateResponse
+			? console.log('IPV6 UPDATE FOR DYNV6.COM SUCCESSFULLY')
+			: console.log('IPV6 UPDATE FOR DYNV6.COM FAILED');
+	} else {
+		console.log('External IPv6 could not be fetched');
+	}
+})();
