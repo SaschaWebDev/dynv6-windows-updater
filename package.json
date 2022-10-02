@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/SaschaWebDev/dynv6-windows-updater/issues"
   },
-  "homepage": "https://github.com/SaschaWebDev/dynv6-windows-updater#readme"
+  "homepage": "https://github.com/SaschaWebDev/dynv6-windows-updater#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
 }
